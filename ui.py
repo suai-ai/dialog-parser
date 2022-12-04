@@ -2,6 +2,7 @@ import tkinter
 import customtkinter
 from tkinter import filedialog as fd
 from functools import partial
+from new_message_mod import TelegramFile, TelegaUser
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -9,9 +10,9 @@ customtkinter.set_default_color_theme("blue")
 
 
 class ListItem(customtkinter.CTkFrame):
-    def __init__(self, master, text, info):
+    def __init__(self, master, chat, info):
         super().__init__(master)
-        self.text = text
+        self.text = chat.name
         self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
         self.checkbox.pack(side=tkinter.LEFT, padx=10,
                            pady=10, expand=True, fill=tkinter.BOTH)
@@ -37,7 +38,7 @@ class ListItem(customtkinter.CTkFrame):
         radio_button_w.pack(padx=0, pady=10, side=tkinter.RIGHT)
         radio_button_m.pack(padx=0, pady=10, side=tkinter.RIGHT)
         radio_button_u.pack(padx=0, pady=10, side=tkinter.RIGHT)
-        self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
+        # self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def get_gender(self) -> str:
         return ["Неизвестно", "Мужской", "Женский"][self.gender.get()]
@@ -45,12 +46,18 @@ class ListItem(customtkinter.CTkFrame):
     def delete(self):
         self.destroy()
 
+    def set(chat: TelegaUser):
+        pass
+
 
 class App(customtkinter.CTk):
     def __init__(self):
         self.height = 700
         self.width = 1100
+        self.chats = []
+
         super().__init__()
+        self.title("Huynya App 3000")
         self.geometry(f"{self.width}x{self.height}")
 
         tabview = customtkinter.CTkTabview(self)
@@ -77,13 +84,13 @@ class App(customtkinter.CTk):
         left_frame = customtkinter.CTkFrame(master=self.tab_1)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        list_frame = customtkinter.CTkFrame(master=left_frame)
-        list_frame.pack(fill=tkinter.X, padx=0, pady=0)
+        self.list_frame = customtkinter.CTkFrame(master=left_frame)
+        self.list_frame.pack(fill=tkinter.X, padx=0, pady=0)
 
-        list_items = []
-        for i in range(10):
-            list_items.append(ListItem(list_frame, "Item " +
-                              str(i), partial(self.show_preview, i)))
+        self.update_list()
+
+        # list_items.append(ListItem(list_frame, "Item " +
+        #                   str(i), partial(self.show_preview, i)))
 
         self.textbox = customtkinter.CTkTextbox(
             master=self.tab_1, font=("Arial", 16))
@@ -110,19 +117,28 @@ class App(customtkinter.CTk):
 
         # file pick button and label
         self.pick_file_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Pick file", command=self.pick_file, width=80)
+            master=bottom_frame, text="Load file", command=self.pick_file, width=80)
         self.pick_file_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
+
+        # self.file_refr_btn = customtkinter.CTkButton(
+        #     master=bottom_frame, text="Update File", command=self.parse_file, width=80)
+        # self.file_refr_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
 
         self.path_label = customtkinter.CTkLabel(
             master=bottom_frame, text="No file selected")
         self.path_label.pack(
             padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
+    def update_list(self):
+        for i in self.chats[:10]:
+            i.pack(fill=tkinter.X, padx=0, pady=(0, 1))
+
     def pick_file(self):
         filetypes = (
             ('Json files', '*.json'),
             ('All files', '*.*')
         )
+
         self.json_file = fd.askopenfilename(
             title='Open a file',
             initialdir='.',
@@ -130,11 +146,12 @@ class App(customtkinter.CTk):
 
         if self.json_file:
             try:
-                with open(self.json_file) as f:
+                with open(self.json_file, encoding='utf-8') as f:
                     print(f"File {self.json_file} found")
                     filesize = round(len(f.read()) / 1024**2, 2)
                     self.path_label.configure(
                         text=f"{self.json_file} ({filesize} Mb)")
+                self.parse_file()
 
             except FileNotFoundError:
                 print(f"File {self.json_file} not found")
@@ -175,6 +192,32 @@ class App(customtkinter.CTk):
         self.textbox.delete("1.0", tkinter.END)
         self.textbox.insert(tkinter.END, text)
         self.textbox.configure(state=tkinter.DISABLED)
+
+    def parse_file(self):
+        if not self.json_file:
+            print("No file selected")
+            return
+        print("Parsing file... ", end="")
+        self.data = TelegramFile.parse_file(self.json_file).chats.list
+        print("Done")
+        for chat in self.data:
+            preview = chat.messages[-10:]
+            preview = "\n\n".join(
+                [f"[{m.date_}] {m.from_}: {m.text}" for m in preview])
+            chat.preview = preview
+            chat.total_messages = len(chat.messages)
+
+        self.chats = []
+        for chat in self.data:
+            self.chats.append(
+                ListItem(
+                    master=self.list_frame,
+                    chat=chat,
+                    info=partial(self.show_preview, chat.id_)
+                )
+            )
+
+        self.update_list()
 
 
 if __name__ == "__main__":
