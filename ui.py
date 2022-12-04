@@ -1,5 +1,6 @@
 import tkinter
 import customtkinter
+from tkinter import filedialog as fd
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -10,22 +11,37 @@ class ListItem(customtkinter.CTkFrame):
     def __init__(self, master, text):
         super().__init__(master)
         self.text = text
-        # checkbox
         self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
         self.checkbox.pack(side=tkinter.LEFT, padx=10,
                            pady=10, expand=True, fill=tkinter.BOTH)
-        # label
         # self.label = customtkinter.CTkLabel(self, text=self.text)
         # self.label.pack(side=tkinter.LEFT)
         self.button = customtkinter.CTkButton(
             self, text="?", width=30, command=self.delete, font=("Arial", 16))
-        segemented_button = customtkinter.CTkOptionMenu(
-            master=self,
-            values=[
-                "[ неизвестно ]", "Человек", "Женщина"],
-            command=lambda x: print(text, x))
-        segemented_button.pack(padx=10, pady=10, side=tkinter.RIGHT)
-        self.button.pack(side=tkinter.RIGHT, padx=(10, 0), pady=10)
+        # SEGMENTED BUTTON
+        # segemented_button = customtkinter.CTkOptionMenu(
+        #     master=self,
+        #     values=[
+        #         "[ неизвестно ]", "Человек", "Женщина"],
+        #     command=lambda x: print(text, x))
+        # segemented_button.pack(padx=10, pady=10, side=tkinter.RIGHT)
+
+        # RADIO BUTTON
+        self.gender = tkinter.IntVar(value=0)
+        radio_button_u = customtkinter.CTkRadioButton(
+            width=20, fg_color=["#2CC985", "#2FA572"], hover_color=["#0C955A", "#106A43"],
+            master=self, text="", command=lambda x: print(text, x), variable=self.gender, value=0)
+        radio_button_m = customtkinter.CTkRadioButton(
+            width=20, fg_color=["#3B8ED0", "#1F6AA5"], hover_color=["#36719F", "#144870"],
+            master=self, text="", command=lambda x: print(text, x), variable=self.gender, value=1)
+        radio_button_w = customtkinter.CTkRadioButton(
+            width=20, fg_color=["#d13b9f", "#a61f79"], hover_color=['#9e367b', '#701451'],
+            master=self, text="", command=lambda x: print(text, x), variable=self.gender, value=2)
+
+        self.button.pack(side=tkinter.RIGHT, padx=10, pady=10)
+        radio_button_w.pack(padx=0, pady=10, side=tkinter.RIGHT)
+        radio_button_m.pack(padx=0, pady=10, side=tkinter.RIGHT)
+        radio_button_u.pack(padx=0, pady=10, side=tkinter.RIGHT)
         self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def get_gender(self):
@@ -47,6 +63,21 @@ class App(customtkinter.CTk):
 
         self.tab_1 = tabview.add("Gender Classification")
         self.tab_2 = tabview.add("Dialogs Merge Tool")
+        # self.tab_3 = tabview.add("Settings")
+        # tabview.set("Dialogs Merge Tool")
+
+        # segemented_button_var = customtkinter.StringVar(
+        #     value="Value 1")  # set initial value
+
+        # segemented_button = customtkinter.CTkSegmentedButton(
+        #     master=self.tab_2,
+        #     font=("Arial", 16),
+        #     border_width=5,
+        #     corner_radius=8,
+        #     values=["Value 1", "Value 2", "Value 3"],
+        #     variable=segemented_button_var
+        # )
+        # segemented_button.pack(padx=20, pady=10)
 
         # Dialogs Merge Tool is not implemented yet warning
         warning = customtkinter.CTkLabel(
@@ -84,27 +115,50 @@ class App(customtkinter.CTk):
         # bottom row buttons
         self.button = customtkinter.CTkButton(
             master=frame3, text="<< Prev page", command=self.pick_file, width=80, bg_color="transparent")
-        self.button.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.button.pack(padx=10, pady=10, side=tkinter.LEFT)
+        # self.button.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
-        # label
-        self.label = customtkinter.CTkLabel(
+        self.page_label = customtkinter.CTkLabel(
             master=frame3, text="Page 1 of 1")
-        self.label.grid(row=1, column=1, sticky="nsew", padx=0, pady=10)
+        self.page_label.pack(padx=10, pady=0, side=tkinter.LEFT)
+        # self.page_label.grid(row=1, column=1, sticky="nsew", padx=0, pady=10)
 
         self.button2 = customtkinter.CTkButton(
             master=frame3, text="Next page >>", command=self.pick_file, width=80)
-        self.button2.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+        self.button2.pack(padx=10, pady=10, side=tkinter.LEFT)
+        # self.button2.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+
+        self.pick_file_btn = customtkinter.CTkButton(
+            master=frame3, text="Pick file", command=self.pick_file, width=80)
+        self.pick_file_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
+        # self.button2.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+
+        self.path_label = customtkinter.CTkLabel(
+            master=frame3, text="No file selected")
+        self.path_label.pack(
+            padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
     def pick_file(self):
-        dialog = customtkinter.CTkInputDialog(
-            text="Type a filename", title="Telegram export file")
-        file = dialog.get_input()
-        print(file)
-        try:
-            with open(file) as f:
-                print("File found")
-        except FileNotFoundError:
-            print("File not found")
+        filetypes = (
+            ('Json files', '*.json'),
+            ('All files', '*.*')
+        )
+        self.json_file = fd.askopenfilename(
+            title='Open a file',
+            initialdir='.',
+            filetypes=filetypes)
+
+        if self.json_file:
+            try:
+                with open(self.json_file) as f:
+                    print(f"File {self.json_file} found")
+                    filesize = round(len(f.read()) / 1024**2, 2)
+                    self.path_label.configure(
+                        text=f"{self.json_file} ({filesize} Mb)")
+
+            except FileNotFoundError:
+                print(f"File {self.json_file} not found")
+                self.path_label.configure(text="File not found")
 
 
 if __name__ == "__main__":

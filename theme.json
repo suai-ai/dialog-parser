@@ -1,0 +1,17 @@
+{
+  "CTkRadiobutton_m": {
+    "fg_color": ["#3B8ED0", "#1F6AA5"],
+    "border_color": ["#3E454A", "#949A9F"],
+    "hover_color": ["#36719F", "#144870"]
+  },
+  "CTkRadiobutton_f": {
+    "fg_color": ["#d13b9f", "#a61f79"],
+    "border_color": ["#3E454A", "#949A9F"],
+    "hover_color": ["#9e367b", "#701451"]
+  },
+  "CTkRadiobutton_u": {
+    "fg_color": ["#2CC985", "#2FA572"],
+    "border_color": ["#3E454A", "#949A9F"],
+    "hover_color": ["#0C955A", "#106A43"]
+  }
+}
