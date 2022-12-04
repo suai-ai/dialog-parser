@@ -7,14 +7,18 @@ from typing import List, Literal, Optional, Union, Annotated
 from enum import Enum, unique
 from pprint import pprint
 # enum gender
+
+
 @unique
 class Gender(Enum):
     MALE = "male"
     FEMALE = "female"
 
+
 class TelegaUser(BaseModel):
     name: Optional[str]
-    type_: Literal["personal_chat","saved_messages"] = Field(..., alias="type")
+    type_: Literal["personal_chat",
+                   "saved_messages"] = Field(..., alias="type")
     id_: int = Field(..., alias="id")
     messages: List['Message']
     gender: Optional[Gender]
@@ -38,7 +42,8 @@ class Message(BaseModel):
     width: Optional[int] = None
     height: Optional[int] = None
     thumbnail: Optional[str] = None
-    media_type: Optional[Literal["animation", "audio_file", "sticker", "video_file", "video_message", "voice_message"]] = None
+    media_type: Optional[Literal["animation", "audio_file", "sticker",
+                                 "video_file", "video_message", "voice_message"]] = None
     sticker_emoji: Optional[str] = None
     forwarded_from: Optional[str] = None
     duration_seconds: Optional[int] = None
@@ -47,9 +52,11 @@ class Message(BaseModel):
     title: Optional[str] = None
     actor: Optional[str] = None
     actor_id: Optional[str] = None
-    action: Optional[Literal["edit_chat_theme", "phone_call", "pin_message", "clear_history", "joined_telegram"]] = None
+    action: Optional[Literal["score_in_game", "proximity_reached", "edit_chat_theme",
+                             "phone_call", "pin_message", "clear_history", "joined_telegram"]] = None
     message_id: Optional[int] = None
-    discard_reason: Optional[Literal["busy", "disconnect", "hangup", "missed"]] = None
+    discard_reason: Optional[Literal["busy",
+                                     "disconnect", "hangup", "missed"]] = None
     poll: Optional['Poll'] = None
     location_information: Optional['LocationInformation'] = None
     emoticon: Optional[str] = None
@@ -85,8 +92,10 @@ class Text(BaseModel):
 class TelegaChats(BaseModel):
     list: List['TelegaUser']
 
+
 class TelegramFile(BaseModel):
     chats: TelegaChats
+
 
 TelegaUser.update_forward_refs()
 Message.update_forward_refs()
@@ -99,28 +108,26 @@ if __name__ == '__main__':
             "id": 254968821,
             "messages": [
                 {
-                "id": 1,
-                "type": "message",
-                "date": "2016-11-01T20:06:21",
-                "date_unixtime": "1478019981",
-                "from": "Mr.Dingo",
-                "from_id": "user254968821",
-                "text": "Vgh",
-                "text_entities": [
-                {
-                    "type": "plain",
-                    "text": "Vgh"
-                }
-                ]
+                    "id": 1,
+                    "type": "message",
+                    "date": "2016-11-01T20:06:21",
+                    "date_unixtime": "1478019981",
+                    "from": "Mr.Dingo",
+                    "from_id": "user254968821",
+                    "text": "Vgh",
+                    "text_entities": [
+                        {
+                            "type": "plain",
+                            "text": "Vgh"
+                        }
+                    ]
                 }
             ]
         }
     ]
-    
+
     # for user in user_list:
-        
     #     data = Telega.parse_obj(user)
-        
     #     pprint(data)
     # data = Telega.parse_obj(user_list)
-    data = TelegramFile.parse_file('result5.json')
+    # data = TelegramFile.parse_file('result.json')
