@@ -23,6 +23,38 @@ customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 
+class ListItem(customtkinter.CTkFrame):
+    def __init__(self, master, text):
+        super().__init__(master)
+        # self.grid(padx=10, pady=10, sticky="ew")
+        # self.grid(row=i, column=0)
+        self.text = text
+        self.label = customtkinter.CTkLabel(self, text=self.text)
+        self.label.pack(side=tkinter.LEFT, expand=True)
+        self.button = customtkinter.CTkButton(
+            self, text="X", command=self.delete)
+        # self.button.pack(side=tkinter.RIGHT)
+        # segemented_button_var = customtkinter.StringVar(value="Человек")  # set initial value
+
+        # segemented_button = customtkinter.CTkComboBox(master=self,
+        #                                       values=["Человек", "Женщина", "Боевой вертолет"],
+        #                                       variable=segemented_button_var)
+        # segemented_button.pack(padx=20, pady=10, side=tkinter.RIGHT)
+        segemented_button = customtkinter.CTkOptionMenu(
+            master=self,
+            values=[
+                "[ неизвестно ]", "Человек", "Женщина"],
+            command=lambda x: print(text, x))
+        segemented_button.pack(padx=10, pady=10, side=tkinter.RIGHT)
+        self.pack(fill=tkinter.X, padx=10, pady=5, expand=True)
+
+    def get_gender(self):
+        return self.text
+
+    def delete(self):
+        self.destroy()
+
+
 class App(customtkinter.CTk):
     def __init__(self):
         self.height = 700
@@ -31,7 +63,7 @@ class App(customtkinter.CTk):
         self.geometry(f"{self.width}x{self.height}")
 
         tabview = customtkinter.CTkTabview(self)
-        tabview.pack(padx=8, pady=8, fill=tkinter.BOTH, expand=True)
+        tabview.pack(padx=10, pady=10, fill=tkinter.BOTH, expand=True)
 
         self.tab_1 = tabview.add("Gender Classification")
         self.tab_2 = tabview.add("Dialogs Merge Tool")
@@ -49,16 +81,26 @@ class App(customtkinter.CTk):
         self.tab_1.grid_columnconfigure(0, weight=6)
         self.tab_1.grid_columnconfigure(1, weight=4)
 
+        # left column
         frame1 = customtkinter.CTkFrame(master=self.tab_1)
         frame1.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
 
+        list_items = []
+        for i in range(30):
+            list_items.append(ListItem(frame1, "Item " + str(i)))
+            # customtkinter.CTkLabel(master=frame1, text=f"Item {i}"))
+            # list_items[i].grid(row=i, column=0, sticky="nsew", padx=4, pady=4)
+
+        # right column
         frame2 = customtkinter.CTkFrame(master=self.tab_1)
         frame2.grid(row=0, column=1, sticky="nsew", padx=4, pady=4)
 
+        # bottom row
         frame3 = customtkinter.CTkFrame(master=self.tab_1)
         frame3.grid(row=1, column=0, columnspan=2,
                     sticky="nsew", padx=4, pady=4)
 
+        # bottom row buttons
         self.button = customtkinter.CTkButton(
             master=frame3, text="CTkButton", command=self.pick_file)
         self.button.grid(row=1, column=0, sticky="nsew")
