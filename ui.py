@@ -1,51 +1,32 @@
 import tkinter
 import customtkinter
 
-# customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
-# customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
-
-# app = customtkinter.CTk()  # create CTk window like you do with the Tk window
-# app.geometry("400x240")
-
-# def button_function():
-#     print("button pressed")
-
-# # Use CTkButton instead of tkinter Button
-# button = customtkinter.CTkButton(master=app, text="CTkButton", command=button_function)
-# button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-# app.mainloop()
-
-
-# Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
-# Themes: "blue" (standard), "green", "dark-blue"
 customtkinter.set_default_color_theme("blue")
+# Themes: "blue" (standard), "green", "dark-blue"
 
 
 class ListItem(customtkinter.CTkFrame):
     def __init__(self, master, text):
         super().__init__(master)
-        # self.grid(padx=10, pady=10, sticky="ew")
-        # self.grid(row=i, column=0)
+        # self.grid(row=0, column=0, sticky="nsew", columnspan=2)
         self.text = text
-        self.label = customtkinter.CTkLabel(self, text=self.text)
-        self.label.pack(side=tkinter.LEFT, expand=True)
+        # checkbox
+        self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
+        self.checkbox.pack(side=tkinter.LEFT, padx=10,
+                           pady=10, expand=True, fill=tkinter.BOTH)
+        # label
+        # self.label = customtkinter.CTkLabel(self, text=self.text)
+        # self.label.pack(side=tkinter.LEFT)
         self.button = customtkinter.CTkButton(
-            self, text="X", command=self.delete)
-        # self.button.pack(side=tkinter.RIGHT)
-        # segemented_button_var = customtkinter.StringVar(value="Человек")  # set initial value
-
-        # segemented_button = customtkinter.CTkComboBox(master=self,
-        #                                       values=["Человек", "Женщина", "Боевой вертолет"],
-        #                                       variable=segemented_button_var)
-        # segemented_button.pack(padx=20, pady=10, side=tkinter.RIGHT)
+            self, text="?", width=30, command=self.delete, font=("Arial", 16))
         segemented_button = customtkinter.CTkOptionMenu(
             master=self,
             values=[
                 "[ неизвестно ]", "Человек", "Женщина"],
             command=lambda x: print(text, x))
         segemented_button.pack(padx=10, pady=10, side=tkinter.RIGHT)
+        self.button.pack(side=tkinter.RIGHT, padx=(10, 0), pady=10)
         self.pack(fill=tkinter.X, padx=10, pady=5, expand=True)
 
     def get_gender(self):
@@ -83,7 +64,7 @@ class App(customtkinter.CTk):
 
         # left column
         frame1 = customtkinter.CTkFrame(master=self.tab_1)
-        frame1.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        frame1.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         list_items = []
         for i in range(30):
@@ -93,12 +74,12 @@ class App(customtkinter.CTk):
 
         # right column
         frame2 = customtkinter.CTkFrame(master=self.tab_1)
-        frame2.grid(row=0, column=1, sticky="nsew", padx=4, pady=4)
+        frame2.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
         # bottom row
         frame3 = customtkinter.CTkFrame(master=self.tab_1)
         frame3.grid(row=1, column=0, columnspan=2,
-                    sticky="nsew", padx=4, pady=4)
+                    sticky="nsew", padx=5, pady=5)
 
         # bottom row buttons
         self.button = customtkinter.CTkButton(
