@@ -9,7 +9,6 @@ customtkinter.set_default_color_theme("blue")
 class ListItem(customtkinter.CTkFrame):
     def __init__(self, master, text):
         super().__init__(master)
-        # self.grid(row=0, column=0, sticky="nsew", columnspan=2)
         self.text = text
         # checkbox
         self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
@@ -27,7 +26,7 @@ class ListItem(customtkinter.CTkFrame):
             command=lambda x: print(text, x))
         segemented_button.pack(padx=10, pady=10, side=tkinter.RIGHT)
         self.button.pack(side=tkinter.RIGHT, padx=(10, 0), pady=10)
-        self.pack(fill=tkinter.X, padx=10, pady=5, expand=True)
+        self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def get_gender(self):
         return self.text
@@ -66,11 +65,12 @@ class App(customtkinter.CTk):
         frame1 = customtkinter.CTkFrame(master=self.tab_1)
         frame1.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
+        frame11 = customtkinter.CTkFrame(master=frame1)
+        frame11.pack(fill=tkinter.X, padx=0, pady=0)
+
         list_items = []
-        for i in range(30):
-            list_items.append(ListItem(frame1, "Item " + str(i)))
-            # customtkinter.CTkLabel(master=frame1, text=f"Item {i}"))
-            # list_items[i].grid(row=i, column=0, sticky="nsew", padx=4, pady=4)
+        for i in range(10):
+            list_items.append(ListItem(frame11, "Item " + str(i)))
 
         # right column
         frame2 = customtkinter.CTkFrame(master=self.tab_1)
@@ -83,12 +83,17 @@ class App(customtkinter.CTk):
 
         # bottom row buttons
         self.button = customtkinter.CTkButton(
-            master=frame3, text="CTkButton", command=self.pick_file)
-        self.button.grid(row=1, column=0, sticky="nsew")
+            master=frame3, text="<< Prev page", command=self.pick_file, width=80, bg_color="transparent")
+        self.button.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+
+        # label
+        self.label = customtkinter.CTkLabel(
+            master=frame3, text="Page 1 of 1")
+        self.label.grid(row=1, column=1, sticky="nsew", padx=0, pady=10)
 
         self.button2 = customtkinter.CTkButton(
-            master=frame3, text="CTkButton2", command=self.pick_file)
-        self.button2.grid(row=1, column=1, sticky="nsew")
+            master=frame3, text="Next page >>", command=self.pick_file, width=80)
+        self.button2.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
 
     def pick_file(self):
         dialog = customtkinter.CTkInputDialog(
