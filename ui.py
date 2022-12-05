@@ -91,6 +91,9 @@ class ListItem(customtkinter.CTkFrame):
         return self.chat.dict()
         # print(self.chat.dict())
 
+    def toggle(self):
+        self.need_export.set(not self.need_export.get())
+
 
 class Settings:
     def __init__(self):
@@ -224,6 +227,16 @@ class App(customtkinter.CTk):
         )
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
+        # Toggle selection button
+        self.toggle_selection_btn = customtkinter.CTkButton(
+            master=bottom_frame,
+            text="Toggle select",
+            command=self.toggle_selection,
+            width=80,
+        )
+        self.toggle_selection_btn.pack(
+            padx=(0, 10), pady=10, side=tkinter.LEFT)
+
         self.save_file_btn = customtkinter.CTkButton(
             master=bottom_frame, text="Save file", command=self.save_file, width=80
         )
@@ -289,7 +302,7 @@ class App(customtkinter.CTk):
         if not self.json_file:
             print("No file loaded")
             return
-        
+
         f_name = fd.asksaveasfilename(
             defaultextension=".json", initialfile=self.settings.default_filename.get()
         )
@@ -324,7 +337,7 @@ class App(customtkinter.CTk):
             self.data = [i for i in self.data if i.name]
 
         for chat in self.data:
-            preview = chat.messages[-(self.settings.preview_count):]
+            preview = chat.messages[-(self.settings.preview_count.get()):]
             preview = "\n\n".join(
                 [
                     f"[ {m.date_.replace('T', ' ')} ]\n{m.from_}: "
@@ -347,6 +360,10 @@ class App(customtkinter.CTk):
 
         self.chats_pages = ceil(len(self.chats) / self.chats_per_page)
         self.update_list()
+
+    def toggle_selection(self):
+        for i in get_page(self.chats_page, self.chats_per_page, self.chats):
+            i.toggle()
 
 
 if __name__ == "__main__":
