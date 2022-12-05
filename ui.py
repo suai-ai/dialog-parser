@@ -29,24 +29,51 @@ class ListItem(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
 
         self.checkbox = customtkinter.CTkCheckBox(
-            self, text=self.chat.name, variable=self.need_export, onvalue=True, offvalue=False)
+            self,
+            text=self.chat.name,
+            variable=self.need_export,
+            onvalue=True,
+            offvalue=False,
+        )
         self.checkbox.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
         self.checkbox.select()
 
         self.button = customtkinter.CTkButton(
-            self, text="?", width=30, command=info, font=("Arial", 16))
+            self, text="?", width=30, command=info, font=("Arial", 16)
+        )
 
         # RADIO BUTTON
         self.gender = tkinter.IntVar(value=0)
         radio_button_u = customtkinter.CTkRadioButton(
-            width=20, fg_color=["#2CC985", "#2FA572"], hover_color=["#0C955A", "#106A43"],
-            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=0)
+            width=20,
+            fg_color=["#2CC985", "#2FA572"],
+            hover_color=["#0C955A", "#106A43"],
+            master=self,
+            text="",
+            command=lambda: print(self.chat.name, self.get_gender()),
+            variable=self.gender,
+            value=0,
+        )
         radio_button_m = customtkinter.CTkRadioButton(
-            width=20, fg_color=["#3B8ED0", "#1F6AA5"], hover_color=["#36719F", "#144870"],
-            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=1)
+            width=20,
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            hover_color=["#36719F", "#144870"],
+            master=self,
+            text="",
+            command=lambda: print(self.chat.name, self.get_gender()),
+            variable=self.gender,
+            value=1,
+        )
         radio_button_w = customtkinter.CTkRadioButton(
-            width=20, fg_color=["#d13b9f", "#a61f79"], hover_color=['#9e367b', '#701451'],
-            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=2)
+            width=20,
+            fg_color=["#d13b9f", "#a61f79"],
+            hover_color=["#9e367b", "#701451"],
+            master=self,
+            text="",
+            command=lambda: print(self.chat.name, self.get_gender()),
+            variable=self.gender,
+            value=2,
+        )
 
         self.button.grid(row=0, column=4, padx=10, pady=10)
         radio_button_w.grid(row=0, column=3, padx=0, pady=10, sticky="ns")
@@ -96,7 +123,10 @@ class App(customtkinter.CTk):
 
         # Dialogs Merge Tool is not implemented yet warning
         warning_label = customtkinter.CTkLabel(
-            self.tab_2, text="Dialogs Merge Tool is not implemented yet, uwu :3", font=("Arial", 20))
+            self.tab_2,
+            text="Dialogs Merge Tool is not implemented yet, uwu :3",
+            font=("Arial", 20),
+        )
         warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
         # ------ SETTINGS TAB ------
@@ -115,7 +145,12 @@ class App(customtkinter.CTk):
 
         # Filter bots switch
         filter_bots_switch = customtkinter.CTkSwitch(
-            center_frame, variable=self.settings.filter_bots, onvalue=True, offvalue=False, text=None)
+            center_frame,
+            variable=self.settings.filter_bots,
+            onvalue=True,
+            offvalue=False,
+            text=None,
+        )
         filter_bots_switch.grid(row=1, column=1, padx=10, pady=10, sticky="w")
         # set filter_bots_switch to True
         filter_bots_switch.select()
@@ -126,15 +161,22 @@ class App(customtkinter.CTk):
         preview_count_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         preview_count_slider = customtkinter.CTkSlider(
-            center_frame, from_=10, to=50, number_of_steps=4, variable=self.settings.preview_count)
+            center_frame,
+            from_=10,
+            to=50,
+            number_of_steps=4,
+            variable=self.settings.preview_count,
+        )
         preview_count_slider.grid(
             row=0, column=1, padx=10, pady=10, sticky="ew")
 
         # slider value label
         self.preview_count_value_label = customtkinter.CTkLabel(
-            center_frame, textvariable=self.settings.preview_count)
+            center_frame, textvariable=self.settings.preview_count
+        )
         self.preview_count_value_label.grid(
-            row=0, column=2, padx=(0, 20), pady=10, sticky="w")
+            row=0, column=2, padx=(0, 20), pady=10, sticky="w"
+        )
 
         # ------ GENDER CLASSIFICATION TAB ------
 
@@ -150,7 +192,8 @@ class App(customtkinter.CTk):
         self.list_frame = customtkinter.CTkFrame(master=left_frame)
 
         self.textbox = customtkinter.CTkTextbox(
-            master=self.tab_1, font=("Arial", 16), wrap=tkinter.WORD)
+            master=self.tab_1, font=("Arial", 16), wrap=tkinter.WORD
+        )
         self.textbox.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         self.textbox.configure(state=tkinter.DISABLED)
 
@@ -169,20 +212,27 @@ class App(customtkinter.CTk):
         self.prev_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
         self.page_label = customtkinter.CTkLabel(
-            master=bottom_frame, text="Page 1 of 1")
+            master=bottom_frame, text="Page 1 of 1"
+        )
         self.page_label.pack(padx=10, pady=0, side=tkinter.LEFT)
 
         self.next_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Next page >>", command=partial(self.update_list, 1), width=80)
+            master=bottom_frame,
+            text="Next page >>",
+            command=partial(self.update_list, 1),
+            width=80,
+        )
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
         self.save_file_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Save file", command=self.save_file, width=80)
+            master=bottom_frame, text="Save file", command=self.save_file, width=80
+        )
         self.save_file_btn.pack(padx=(5, 10), pady=10, side=tkinter.RIGHT)
 
         # file pick button and label
         self.pick_file_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Load file", command=self.pick_file, width=80)
+            master=bottom_frame, text="Load file", command=self.pick_file, width=80
+        )
         self.pick_file_btn.pack(padx=(10, 5), pady=10, side=tkinter.RIGHT)
 
         # self.file_refr_btn = customtkinter.CTkButton(
@@ -190,7 +240,8 @@ class App(customtkinter.CTk):
         # self.file_refr_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
 
         self.path_label = customtkinter.CTkLabel(
-            master=bottom_frame, text="No file selected")
+            master=bottom_frame, text="No file selected"
+        )
         self.path_label.pack(
             padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
@@ -200,7 +251,8 @@ class App(customtkinter.CTk):
         self.chats_page += inc
         self.chats_page = max(0, min(self.chats_page, self.chats_pages - 1))
         self.page_label.configure(
-            text=f"Page {self.chats_page + 1 if self.chats_pages else 0} of {self.chats_pages}")
+            text=f"Page {self.chats_page + 1 if self.chats_pages else 0} of {self.chats_pages}"
+        )
 
         if len(self.chats) > 0:
             self.list_frame.pack(fill=tkinter.X, padx=0, pady=0)
@@ -214,19 +266,15 @@ class App(customtkinter.CTk):
     def pick_file(self):
         print(self.settings.filter_bots.get(),
               self.settings.preview_count.get())
-        filetypes = (
-            ('Json files', '*.json'),
-            ('All files', '*.*')
-        )
+        filetypes = (("Json files", "*.json"), ("All files", "*.*"))
 
         self.json_file = fd.askopenfilename(
-            title='Open a file',
-            initialdir='.',
-            filetypes=filetypes)
+            title="Open a file", initialdir=".", filetypes=filetypes
+        )
 
         if self.json_file:
             try:
-                with open(self.json_file, encoding='utf-8') as f:
+                with open(self.json_file, encoding="utf-8") as f:
                     print(f"File {self.json_file} found")
                     filesize = round(len(f.read()) / 1024**2, 2)
                     self.path_label.configure(
@@ -238,17 +286,24 @@ class App(customtkinter.CTk):
                 self.path_label.configure(text="File not found")
 
     def save_file(self):
-        f_name = fd.asksaveasfilename(defaultextension=".json",
-                                      initialfile=self.settings.default_filename.get())
+        if not self.json_file:
+            print("No file loaded")
+            return
+        
+        f_name = fd.asksaveasfilename(
+            defaultextension=".json", initialfile=self.settings.default_filename.get()
+        )
+
         if f_name is None:  # asksaveasfile return `None` if dialog closed with "cancel".
             return
+
         export = []
         for chat in tqdm(self.chats):
             if chat.need_export:
                 export.append(chat.to_json())
         text2save = json.dumps(export, indent=1, ensure_ascii=False)
 
-        with open(f_name, 'w', encoding='utf-8') as f:
+        with open(f_name, "w", encoding="utf-8") as f:
             f.write(text2save)
 
     def show_preview(self, text):
@@ -269,11 +324,14 @@ class App(customtkinter.CTk):
             self.data = [i for i in self.data if i.name]
 
         for chat in self.data:
-            preview = chat.messages[-10:]
+            preview = chat.messages[-(self.settings.preview_count):]
             preview = "\n\n".join(
-                [f"[ {m.date_.replace('T', ' ')} ]\n{m.from_}: "
-                 f"{m.text if type(m.text) == str else (' '.join((i if type(i) == str else i.text) for i in m.text))}"
-                 for m in preview])
+                [
+                    f"[ {m.date_.replace('T', ' ')} ]\n{m.from_}: "
+                    f"{m.text if type(m.text) == str else (' '.join((i if type(i) == str else i.text) for i in m.text))}"
+                    for m in preview
+                ]
+            )
             chat.preview = preview
             chat.total_messages = len(chat.messages)
 
@@ -283,7 +341,7 @@ class App(customtkinter.CTk):
                 ListItem(
                     master=self.list_frame,
                     chat=chat,
-                    info=partial(self.show_preview, chat.preview)
+                    info=partial(self.show_preview, chat.preview),
                 )
             )
 
