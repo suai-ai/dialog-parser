@@ -16,49 +16,59 @@ def get_page(page, page_size, lst):
 
 class ListItem(customtkinter.CTkFrame):
     def __init__(self, master, chat, info):
+        self.chat = chat
         super().__init__(master)
-        if chat.type_ == "saved_messages":
-            chat.name = "Сохраненные сообщения"
-        elif not chat.name:
-            chat.name = f"bot_{chat.id_}"
-        self.text = chat.name
-        chat.need_export = True
-        self.need_export = tkinter.BooleanVar(value=chat.need_export)
+        if self.chat.type_ == "saved_messages":
+            self.chat.name = "Сохраненные сообщения"
+        elif not self.chat.name:
+            self.chat.name = f"bot_{self.chat.id_}"
+        self.need_export = tkinter.BooleanVar(value=True)
 
         self.grid_columnconfigure(0, weight=1)
 
         self.checkbox = customtkinter.CTkCheckBox(
-            self, text=self.text, variable=self.need_export, onvalue=True, offvalue=False)
+            self, text=self.chat.name, variable=self.need_export, onvalue=True, offvalue=False)
         self.checkbox.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.checkbox.select()
 
         self.button = customtkinter.CTkButton(
-            self, text="?", width=30, command=info, font=("Arial", 16))
+            self, text="?", width=30, command=self.to_json, font=("Arial", 16))
+            # self, text="?", width=30, command=info, font=("Arial", 16))
 
         # RADIO BUTTON
         self.gender = tkinter.IntVar(value=0)
         radio_button_u = customtkinter.CTkRadioButton(
             width=20, fg_color=["#2CC985", "#2FA572"], hover_color=["#0C955A", "#106A43"],
-            master=self, text="", command=lambda: print(self.text, self.get_gender()), variable=self.gender, value=0)
+            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=0)
         radio_button_m = customtkinter.CTkRadioButton(
             width=20, fg_color=["#3B8ED0", "#1F6AA5"], hover_color=["#36719F", "#144870"],
-            master=self, text="", command=lambda: print(self.text, self.get_gender()), variable=self.gender, value=1)
+            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=1)
         radio_button_w = customtkinter.CTkRadioButton(
             width=20, fg_color=["#d13b9f", "#a61f79"], hover_color=['#9e367b', '#701451'],
-            master=self, text="", command=lambda: print(self.text, self.get_gender()), variable=self.gender, value=2)
+            master=self, text="", command=lambda: print(self.chat.name, self.get_gender()), variable=self.gender, value=2)
 
         self.button.grid(row=0, column=4, padx=10, pady=10)
-        radio_button_w.grid(row=0, column=3, padx=0, pady=10)
-        radio_button_m.grid(row=0, column=2, padx=0, pady=10)
-        radio_button_u.grid(row=0, column=1, padx=0, pady=10)
+        radio_button_w.grid(row=0, column=3, padx=0, pady=10, sticky="ns")
+        radio_button_m.grid(row=0, column=2, padx=0, pady=10, sticky="ns")
+        radio_button_u.grid(row=0, column=1, padx=0, pady=10, sticky="ns")
         # self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def get_gender(self) -> str:
+        # prnt_chat()
         return ["Неизвестно", "Мужской", "Женский"][self.gender.get()]
 
     def to_json(self):
-        return None
+        self.chat.need_export = self.need_export.get()
+        self.gender = self.gender.get()
+        # return self.chat.to_json()
+        print(self.chat.dict())
         # TODO: Добавить сохранение в json
 
+class Settings:
+    def __init__(self):
+        self.filter_bots = tkinter.BooleanVar(value=True)
+        self.preview_count = tkinter.IntVar(value=10)
+        self.default_filename = tkinter.StringVar(value="chats.json")
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -70,8 +80,9 @@ class App(customtkinter.CTk):
         self.chats_pages = 0
         self.json_file = None
 
+
         super().__init__()
-        self.title("Huynya App 3000")
+        self.title("Huynya App 3000 - v0.1 - with love by CyberPotato")
         self.geometry(f"{self.width}x{self.height}")
 
         tabview = customtkinter.CTkTabview(self)
@@ -80,12 +91,46 @@ class App(customtkinter.CTk):
         self.tab_1 = tabview.add("Gender Classification")
         self.tab_2 = tabview.add("Dialogs Merge Tool")
         self.tab_3 = tabview.add("Settings")
-        # tabview.set("Dialogs Merge Tool")
+        # tabview.set("Settings")
 
         # Dialogs Merge Tool is not implemented yet warning
         warning_label = customtkinter.CTkLabel(
             self.tab_2, text="Dialogs Merge Tool is not implemented yet, uwu :3", font=("Arial", 20))
         warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        # ------ SETTINGS TAB ------
+        self.settings = Settings()
+
+        center_frame = customtkinter.CTkFrame(self.tab_3, width=500)
+        # center frame by X
+        center_frame.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER, relwidth=0.5)
+        center_frame.grid_columnconfigure(1, weight=1)
+
+        # Filter bots label
+        filter_bots_label = customtkinter.CTkLabel(
+            center_frame, text="Exclude bots")
+        filter_bots_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+        # Filter bots switch
+        filter_bots_switch = customtkinter.CTkSwitch(
+            center_frame, variable=self.settings.filter_bots, onvalue=True, offvalue=False, text=None)
+        filter_bots_switch.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # set filter_bots_switch to True
+        filter_bots_switch.select()
+        
+        # Preview count
+        preview_count_label = customtkinter.CTkLabel(
+            center_frame, text="Preview len")
+        preview_count_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+        preview_count_slider = customtkinter.CTkSlider(
+            center_frame, from_=10, to=50, number_of_steps=4, variable=self.settings.preview_count)
+        preview_count_slider.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
+        # slider value label
+        self.preview_count_value_label = customtkinter.CTkLabel(
+            center_frame, textvariable=self.settings.preview_count)
+        self.preview_count_value_label.grid(row=0, column=2, padx=(0, 20), pady=10, sticky="w")
 
         # ------ GENDER CLASSIFICATION TAB ------
 
@@ -101,7 +146,7 @@ class App(customtkinter.CTk):
         self.list_frame = customtkinter.CTkFrame(master=left_frame)
 
         self.textbox = customtkinter.CTkTextbox(
-            master=self.tab_1, font=("Arial", 16))
+            master=self.tab_1, font=("Arial", 16), wrap=tkinter.WORD)
         self.textbox.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         self.textbox.configure(state=tkinter.DISABLED)
 
@@ -127,10 +172,14 @@ class App(customtkinter.CTk):
             master=bottom_frame, text="Next page >>", command=partial(self.update_list, 1), width=80)
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
+        self.save_file_btn = customtkinter.CTkButton(
+            master=bottom_frame, text="Save file", command=self.pick_file, width=80)
+        self.save_file_btn.pack(padx=(5, 10), pady=10, side=tkinter.RIGHT)
+
         # file pick button and label
         self.pick_file_btn = customtkinter.CTkButton(
             master=bottom_frame, text="Load file", command=self.pick_file, width=80)
-        self.pick_file_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
+        self.pick_file_btn.pack(padx=(10, 5), pady=10, side=tkinter.RIGHT)
 
         # self.file_refr_btn = customtkinter.CTkButton(
         #     master=bottom_frame, text="Update File", command=self.parse_file, width=80)
@@ -159,6 +208,7 @@ class App(customtkinter.CTk):
             i.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def pick_file(self):
+        print(self.settings.filter_bots.get(), self.settings.preview_count.get())
         filetypes = (
             ('Json files', '*.json'),
             ('All files', '*.*')
@@ -195,10 +245,16 @@ class App(customtkinter.CTk):
         print("Parsing file... ", end="")
         self.data = TelegramFile.parse_file(self.json_file).chats.list
         print("Done")
+
+        if self.settings.filter_bots.get():
+            self.data = [i for i in self.data if i.name]
+
         for chat in self.data:
             preview = chat.messages[-10:]
             preview = "\n\n".join(
-                [f"[{m.date_}] {m.from_}:\n{m.text}" for m in preview])
+                [f"[ {m.date_.replace('T', ' ')} ]\n{m.from_}: "
+                 f"{m.text if type(m.text) == str else (' '.join((i if type(i) == str else i.text) for i in m.text))}"
+                 for m in preview])
             chat.preview = preview
             chat.total_messages = len(chat.messages)
 
