@@ -4,6 +4,8 @@ from tkinter import filedialog as fd
 from functools import partial
 from new_message_mod import TelegramFile
 from math import ceil
+import json
+from tqdm import tqdm
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -32,8 +34,7 @@ class ListItem(customtkinter.CTkFrame):
         self.checkbox.select()
 
         self.button = customtkinter.CTkButton(
-            self, text="?", width=30, command=self.to_json, font=("Arial", 16))
-            # self, text="?", width=30, command=info, font=("Arial", 16))
+            self, text="?", width=30, command=info, font=("Arial", 16))
 
         # RADIO BUTTON
         self.gender = tkinter.IntVar(value=0)
@@ -55,20 +56,21 @@ class ListItem(customtkinter.CTkFrame):
 
     def get_gender(self) -> str:
         # prnt_chat()
-        return ["Неизвестно", "Мужской", "Женский"][self.gender.get()]
+        return ["unknown", "male", "female"][self.gender.get()]
 
     def to_json(self):
         self.chat.need_export = self.need_export.get()
-        self.gender = self.gender.get()
-        # return self.chat.to_json()
-        print(self.chat.dict())
-        # TODO: Добавить сохранение в json
+        self.chat.gender = self.get_gender()
+        return self.chat.dict()
+        # print(self.chat.dict())
+
 
 class Settings:
     def __init__(self):
         self.filter_bots = tkinter.BooleanVar(value=True)
         self.preview_count = tkinter.IntVar(value=10)
         self.default_filename = tkinter.StringVar(value="chats.json")
+
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -79,7 +81,6 @@ class App(customtkinter.CTk):
         self.chats_per_page = 10
         self.chats_pages = 0
         self.json_file = None
-
 
         super().__init__()
         self.title("Huynya App 3000 - v0.1 - with love by CyberPotato")
@@ -103,7 +104,8 @@ class App(customtkinter.CTk):
 
         center_frame = customtkinter.CTkFrame(self.tab_3, width=500)
         # center frame by X
-        center_frame.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER, relwidth=0.5)
+        center_frame.place(relx=0.5, rely=0.1,
+                           anchor=tkinter.CENTER, relwidth=0.5)
         center_frame.grid_columnconfigure(1, weight=1)
 
         # Filter bots label
@@ -117,7 +119,7 @@ class App(customtkinter.CTk):
         filter_bots_switch.grid(row=1, column=1, padx=10, pady=10, sticky="w")
         # set filter_bots_switch to True
         filter_bots_switch.select()
-        
+
         # Preview count
         preview_count_label = customtkinter.CTkLabel(
             center_frame, text="Preview len")
@@ -125,12 +127,14 @@ class App(customtkinter.CTk):
 
         preview_count_slider = customtkinter.CTkSlider(
             center_frame, from_=10, to=50, number_of_steps=4, variable=self.settings.preview_count)
-        preview_count_slider.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        preview_count_slider.grid(
+            row=0, column=1, padx=10, pady=10, sticky="ew")
 
         # slider value label
         self.preview_count_value_label = customtkinter.CTkLabel(
             center_frame, textvariable=self.settings.preview_count)
-        self.preview_count_value_label.grid(row=0, column=2, padx=(0, 20), pady=10, sticky="w")
+        self.preview_count_value_label.grid(
+            row=0, column=2, padx=(0, 20), pady=10, sticky="w")
 
         # ------ GENDER CLASSIFICATION TAB ------
 
@@ -173,7 +177,7 @@ class App(customtkinter.CTk):
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
         self.save_file_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Save file", command=self.pick_file, width=80)
+            master=bottom_frame, text="Save file", command=self.save_file, width=80)
         self.save_file_btn.pack(padx=(5, 10), pady=10, side=tkinter.RIGHT)
 
         # file pick button and label
@@ -208,7 +212,8 @@ class App(customtkinter.CTk):
             i.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def pick_file(self):
-        print(self.settings.filter_bots.get(), self.settings.preview_count.get())
+        print(self.settings.filter_bots.get(),
+              self.settings.preview_count.get())
         filetypes = (
             ('Json files', '*.json'),
             ('All files', '*.*')
@@ -231,6 +236,20 @@ class App(customtkinter.CTk):
             except FileNotFoundError:
                 print(f"File {self.json_file} not found")
                 self.path_label.configure(text="File not found")
+
+    def save_file(self):
+        f_name = fd.asksaveasfilename(defaultextension=".json",
+                                      initialfile=self.settings.default_filename.get())
+        if f_name is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+            return
+        export = []
+        for chat in tqdm(self.chats):
+            if chat.need_export:
+                export.append(chat.to_json())
+        text2save = json.dumps(export, indent=1, ensure_ascii=False)
+
+        with open(f_name, 'w', encoding='utf-8') as f:
+            f.write(text2save)
 
     def show_preview(self, text):
         self.textbox.configure(state=tkinter.NORMAL)
