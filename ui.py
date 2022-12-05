@@ -2,7 +2,7 @@ import tkinter
 import customtkinter
 from tkinter import filedialog as fd
 from functools import partial
-from new_message_mod import TelegramFile, TelegaUser
+from new_message_mod import TelegramFile
 from math import ceil
 
 customtkinter.set_appearance_mode("System")
@@ -10,32 +10,30 @@ customtkinter.set_default_color_theme("blue")
 # Themes: "blue" (standard), "green", "dark-blue"
 
 
-# def paginate(lst, n):
-#     """Yield successive n-sized chunks from lst."""
-#     for i in range(0, len(lst), n):
-#         yield lst[i:i + n]
-
 def get_page(page, page_size, lst):
     return lst[page * page_size: page * page_size + page_size]
-
-# l = list(range(72))
-# print(list(paginate(l, 10))[7])
-# print(get_page(7, 10, l))
 
 
 class ListItem(customtkinter.CTkFrame):
     def __init__(self, master, chat, info):
         super().__init__(master)
+        if chat.type_ == "saved_messages":
+            chat.name = "Сохраненные сообщения"
+        elif not chat.name:
+            chat.name = f"bot_{chat.id_}"
         self.text = chat.name
-        self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
-        self.checkbox.pack(side=tkinter.LEFT, padx=10,
-                           pady=10, fill=tkinter.BOTH)
-        # self.label = customtkinter.CTkLabel(self, text=self.text)
-        # self.label.pack(side=tkinter.LEFT)
+        chat.need_export = True
+        self.need_export = tkinter.BooleanVar(value=chat.need_export)
+
+        self.grid_columnconfigure(0, weight=1)
+
+        self.checkbox = customtkinter.CTkCheckBox(
+            self, text=self.text, variable=self.need_export, onvalue=True, offvalue=False)
+        self.checkbox.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
         self.button = customtkinter.CTkButton(
             self, text="?", width=30, command=info, font=("Arial", 16))
 
-        def print_self(): return print(self.text, self.grnder)
         # RADIO BUTTON
         self.gender = tkinter.IntVar(value=0)
         radio_button_u = customtkinter.CTkRadioButton(
@@ -48,17 +46,18 @@ class ListItem(customtkinter.CTkFrame):
             width=20, fg_color=["#d13b9f", "#a61f79"], hover_color=['#9e367b', '#701451'],
             master=self, text="", command=lambda: print(self.text, self.get_gender()), variable=self.gender, value=2)
 
-        self.button.pack(side=tkinter.RIGHT, padx=10, pady=10)
-        radio_button_w.pack(padx=0, pady=10, side=tkinter.RIGHT)
-        radio_button_m.pack(padx=0, pady=10, side=tkinter.RIGHT)
-        radio_button_u.pack(padx=0, pady=10, side=tkinter.RIGHT)
+        self.button.grid(row=0, column=4, padx=10, pady=10)
+        radio_button_w.grid(row=0, column=3, padx=0, pady=10)
+        radio_button_m.grid(row=0, column=2, padx=0, pady=10)
+        radio_button_u.grid(row=0, column=1, padx=0, pady=10)
         # self.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def get_gender(self) -> str:
         return ["Неизвестно", "Мужской", "Женский"][self.gender.get()]
 
-    def delete(self):
-        self.destroy()
+    def to_json(self):
+        return None
+        # TODO: Добавить сохранение в json
 
 
 class App(customtkinter.CTk):
@@ -80,7 +79,7 @@ class App(customtkinter.CTk):
 
         self.tab_1 = tabview.add("Gender Classification")
         self.tab_2 = tabview.add("Dialogs Merge Tool")
-        # self.tab_3 = tabview.add("Settings")
+        self.tab_3 = tabview.add("Settings")
         # tabview.set("Dialogs Merge Tool")
 
         # Dialogs Merge Tool is not implemented yet warning
@@ -92,15 +91,14 @@ class App(customtkinter.CTk):
 
         self.tab_1.grid_rowconfigure(0, weight=1)
         self.tab_1.grid_rowconfigure(1, weight=0)
-        self.tab_1.grid_columnconfigure(0, weight=1)
-        self.tab_1.grid_columnconfigure(1, weight=1)
+        self.tab_1.grid_columnconfigure(0, weight=1, uniform="group1")
+        self.tab_1.grid_columnconfigure(1, weight=1, uniform="group1")
 
         # left column
         left_frame = customtkinter.CTkFrame(master=self.tab_1)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         self.list_frame = customtkinter.CTkFrame(master=left_frame)
-        self.list_frame.pack(fill=tkinter.X, padx=0, pady=0)
 
         self.textbox = customtkinter.CTkTextbox(
             master=self.tab_1, font=("Arial", 16))
@@ -144,13 +142,16 @@ class App(customtkinter.CTk):
             padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
         self.update_list()
-        # self.parse_file()
 
     def update_list(self, inc=0):
         self.chats_page += inc
         self.chats_page = max(0, min(self.chats_page, self.chats_pages - 1))
         self.page_label.configure(
-            text=f"Page {self.chats_page + 1} of {self.chats_pages}")
+            text=f"Page {self.chats_page + 1 if self.chats_pages else 0} of {self.chats_pages}")
+
+        if len(self.chats) > 0:
+            self.list_frame.pack(fill=tkinter.X, padx=0, pady=0)
+
         # undo pack
         for chat in self.chats:
             chat.pack_forget()

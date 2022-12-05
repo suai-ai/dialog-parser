@@ -23,6 +23,7 @@ class TelegaUser(BaseModel):
     gender: Optional[Gender]
     preview: Optional[List['Message']]
     total_messages: Optional[int]
+    need_export: Optional[bool]
 
 
 class Message(BaseModel):
