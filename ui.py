@@ -3,10 +3,24 @@ import customtkinter
 from tkinter import filedialog as fd
 from functools import partial
 from new_message_mod import TelegramFile, TelegaUser
+from math import ceil
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 # Themes: "blue" (standard), "green", "dark-blue"
+
+
+# def paginate(lst, n):
+#     """Yield successive n-sized chunks from lst."""
+#     for i in range(0, len(lst), n):
+#         yield lst[i:i + n]
+
+def get_page(page, page_size, lst):
+    return lst[page * page_size: page * page_size + page_size]
+
+# l = list(range(72))
+# print(list(paginate(l, 10))[7])
+# print(get_page(7, 10, l))
 
 
 class ListItem(customtkinter.CTkFrame):
@@ -15,7 +29,7 @@ class ListItem(customtkinter.CTkFrame):
         self.text = chat.name
         self.checkbox = customtkinter.CTkCheckBox(self, text=self.text)
         self.checkbox.pack(side=tkinter.LEFT, padx=10,
-                           pady=10, expand=True, fill=tkinter.BOTH)
+                           pady=10, fill=tkinter.BOTH)
         # self.label = customtkinter.CTkLabel(self, text=self.text)
         # self.label.pack(side=tkinter.LEFT)
         self.button = customtkinter.CTkButton(
@@ -46,15 +60,16 @@ class ListItem(customtkinter.CTkFrame):
     def delete(self):
         self.destroy()
 
-    def set(chat: TelegaUser):
-        pass
-
 
 class App(customtkinter.CTk):
     def __init__(self):
         self.height = 700
         self.width = 1100
         self.chats = []
+        self.chats_page = 0
+        self.chats_per_page = 10
+        self.chats_pages = 0
+        self.json_file = None
 
         super().__init__()
         self.title("Huynya App 3000")
@@ -87,11 +102,6 @@ class App(customtkinter.CTk):
         self.list_frame = customtkinter.CTkFrame(master=left_frame)
         self.list_frame.pack(fill=tkinter.X, padx=0, pady=0)
 
-        self.update_list()
-
-        # list_items.append(ListItem(list_frame, "Item " +
-        #                   str(i), partial(self.show_preview, i)))
-
         self.textbox = customtkinter.CTkTextbox(
             master=self.tab_1, font=("Arial", 16))
         self.textbox.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
@@ -104,7 +114,11 @@ class App(customtkinter.CTk):
 
         # pagination
         self.prev_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="<< Prev page", command=self.pick_file, width=80, bg_color="transparent")
+            master=bottom_frame,
+            text="<< Prev page",
+            command=partial(self.update_list, -1),
+            width=80,
+        )
         self.prev_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
         self.page_label = customtkinter.CTkLabel(
@@ -112,7 +126,7 @@ class App(customtkinter.CTk):
         self.page_label.pack(padx=10, pady=0, side=tkinter.LEFT)
 
         self.next_btn = customtkinter.CTkButton(
-            master=bottom_frame, text="Next page >>", command=self.pick_file, width=80)
+            master=bottom_frame, text="Next page >>", command=partial(self.update_list, 1), width=80)
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
 
         # file pick button and label
@@ -129,8 +143,18 @@ class App(customtkinter.CTk):
         self.path_label.pack(
             padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
-    def update_list(self):
-        for i in self.chats[:10]:
+        self.update_list()
+        # self.parse_file()
+
+    def update_list(self, inc=0):
+        self.chats_page += inc
+        self.chats_page = max(0, min(self.chats_page, self.chats_pages - 1))
+        self.page_label.configure(
+            text=f"Page {self.chats_page + 1} of {self.chats_pages}")
+        # undo pack
+        for chat in self.chats:
+            chat.pack_forget()
+        for i in get_page(self.chats_page, self.chats_per_page, self.chats):
             i.pack(fill=tkinter.X, padx=0, pady=(0, 1))
 
     def pick_file(self):
@@ -157,37 +181,7 @@ class App(customtkinter.CTk):
                 print(f"File {self.json_file} not found")
                 self.path_label.configure(text="File not found")
 
-    def show_preview(self, id):
-        print(f"Showing preview for item {id}")
-        # TODO: get random messages from json file from person with id,
-        # TODO: show them in preview window
-
-        # все совпадения с реальными людьми случайны
-        users = [
-            "Rayan Gosling",
-            "Johny Depp",
-            "Tom Cruise",
-            "Brad Pitt",
-            "Leonardo DiCaprio",
-            "Will Smith",
-            "yyyyylia"
-        ]
-
-        messages = [
-            {"text": "Привет!", "from": "Вы", "t": "3:00"},
-            {"text": "Привет", "from": users[id % len(users)], "t": "3:01"},
-            {"text": "Как ты?", "from": "Вы", "t": "3:02"},
-            {"text": "Все хорошо",
-                "from": users[id % len(users)], "t": "3:03"},
-            {"text": "Нам нужно поговорить.", "from": "Вы", "t": "3:04"},
-            {"text": "У меня нет времени",
-                "from": users[id % len(users)], "t": "3:05"},
-        ]
-
-        text = "\n\n".join(
-            [f"({m['t']}) {m['from']}: {m['text']}" for m in messages])
-        text = f"Total messages: {len(messages) ** (11 - id) + 1234}\nPreview:\n\n" + text
-
+    def show_preview(self, text):
         self.textbox.configure(state=tkinter.NORMAL)
         self.textbox.delete("1.0", tkinter.END)
         self.textbox.insert(tkinter.END, text)
@@ -203,7 +197,7 @@ class App(customtkinter.CTk):
         for chat in self.data:
             preview = chat.messages[-10:]
             preview = "\n\n".join(
-                [f"[{m.date_}] {m.from_}: {m.text}" for m in preview])
+                [f"[{m.date_}] {m.from_}:\n{m.text}" for m in preview])
             chat.preview = preview
             chat.total_messages = len(chat.messages)
 
@@ -213,10 +207,11 @@ class App(customtkinter.CTk):
                 ListItem(
                     master=self.list_frame,
                     chat=chat,
-                    info=partial(self.show_preview, chat.id_)
+                    info=partial(self.show_preview, chat.preview)
                 )
             )
 
+        self.chats_pages = ceil(len(self.chats) / self.chats_per_page)
         self.update_list()
 
 
