@@ -248,10 +248,6 @@ class App(customtkinter.CTk):
         )
         self.pick_file_btn.pack(padx=(10, 5), pady=10, side=tkinter.RIGHT)
 
-        # self.file_refr_btn = customtkinter.CTkButton(
-        #     master=bottom_frame, text="Update File", command=self.parse_file, width=80)
-        # self.file_refr_btn.pack(padx=10, pady=10, side=tkinter.RIGHT)
-
         self.path_label = customtkinter.CTkLabel(
             master=bottom_frame, text="No file selected"
         )
@@ -307,7 +303,7 @@ class App(customtkinter.CTk):
             defaultextension=".json", initialfile=self.settings.default_filename.get()
         )
 
-        if f_name is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+        if f_name is None:
             return
 
         export = []
