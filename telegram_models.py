@@ -1,5 +1,5 @@
 from typing import List, Dict, Generic, TypeVar
-from pydantic import BaseModel, Field, NoneStr
+from pydantic import BaseModel, Field, NoneStr, validator
 from pydantic.generics import GenericModel
 from datetime import datetime
 from enum import Enum
@@ -8,19 +8,19 @@ NoneInt = int | None
 
 
 class ChatType(str, Enum):
-    saved_messages = 'saved_messages'
-    personal_chat = 'personal_chat'
+    saved_messages = "saved_messages"
+    personal_chat = "personal_chat"
 
 
 class ContactCategory(str, Enum):
-    people = 'people'
-    bots = 'inline_bots'
-    calls = 'calls'
+    people = "people"
+    bots = "inline_bots"
+    calls = "calls"
 
 
 class MessageType(str, Enum):
-    message = 'message'
-    service = 'service'
+    message = "message"
+    service = "service"
 
 
 class MediaType(str, Enum):
@@ -34,14 +34,14 @@ class MediaType(str, Enum):
 
 class Message(BaseModel):
     date: datetime
-    id_: int = Field(..., alias='id')
+    id_: int = Field(..., alias="id")
     text_entities: List[Dict]
     type: MessageType
-    text: str | List[Dict | str]
-    # other fields is optional
+    text: str
+    # другие поля опциональны
 
-    # fields with > 1% count:
-    from_: NoneStr = Field(None, alias='from')
+    # поля, у которых процент встречаемости больше 1%
+    from_: NoneStr = Field(None, alias="from")
     from_id: NoneStr
     reply_to_message_id: NoneInt
     edited: datetime | None
@@ -56,13 +56,14 @@ class Message(BaseModel):
     forwarded_from: NoneStr
     sticker_emoji: NoneStr
 
-    def getPlainText(self):
-        if not self.text:
-            return ''
-        if isinstance(self.text, str):
-            return self.text
-        return ''.join(e['text'] for e in self.text_entities)
-        # примечание: если в сообщении есть ссылка, будет сохранено только ее название, а не сама ссылка (href)
+    # преобразуем список текстовых объектов в строку
+    @validator("text", pre=True)
+    def plain_text(cls, value):
+        if isinstance(value, List):
+            return "".join(
+                e.get("text", "") if isinstance(e, dict) else e for e in value
+            )
+        return value
 
 
 class Contact(BaseModel):
@@ -74,13 +75,15 @@ class Contact(BaseModel):
 
 
 class FrequentContact(BaseModel):
-    id_: int = Field(..., alias='id')
+    id_: int = Field(..., alias="id")
     name: str
     rating: float
     category: ContactCategory
 
 
-TData = TypeVar('TData')
+# обертка для списка с описанием
+
+TData = TypeVar("TData")
 
 
 class AboutWrapper(GenericModel, Generic[TData]):
@@ -88,16 +91,30 @@ class AboutWrapper(GenericModel, Generic[TData]):
     list: List[TData]
 
 
-# две главные модели
+T = TypeVar("T")
+ListWrapper = AboutWrapper[T] | List[T]
+
+
+# две главные модели:
+# TelegramExport - все данные из экспорта
+# TelegramChat - данные об одном чате
+
 
 class TelegramChat(BaseModel):
-    id_: int = Field(..., alias='id')
+    id_: int = Field(..., alias="id")
     messages: List[Message]
     name: NoneStr
-    type_: ChatType = Field(..., alias='type')
+    type_: ChatType = Field(..., alias="type")
 
 
 class TelegramExport(BaseModel):
-    chats: AboutWrapper[TelegramChat]
-    contacts: AboutWrapper[Contact]
-    frequent_contacts: AboutWrapper[FrequentContact]
+    chats: ListWrapper[TelegramChat]
+    contacts: ListWrapper[Contact]
+    frequent_contacts: ListWrapper[FrequentContact]
+
+    # убираем обертку, если она есть
+    @validator("chats", "contacts", "frequent_contacts", pre=True)
+    def unwrap(cls, value):
+        if isinstance(value, dict) and "about" in value and "list" in value:
+            return value["list"]
+        return value
