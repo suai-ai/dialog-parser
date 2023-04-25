@@ -8,40 +8,40 @@ NoneInt = int | None
 
 
 class ChatType(str, Enum):
-    saved_messages = "saved_messages"
-    personal_chat = "personal_chat"
+    Saved = 'saved_messages'
+    Chat = 'personal_chat'
 
 
 class ContactCategory(str, Enum):
-    people = "people"
-    bots = "inline_bots"
-    calls = "calls"
+    People = 'people'
+    Bots = 'inline_bots'
+    Call = 'calls'
 
 
 class MessageType(str, Enum):
-    message = "message"
-    service = "service"
+    Message = 'message'
+    Service = 'service'
 
 
 class MediaType(str, Enum):
-    animation = "animation"
-    video_file = "video_file"
-    video_message = "video_message"
-    voice_message = "voice_message"
-    audio_file = "audio_file"
-    sticker = "sticker"
+    Animation = 'animation'
+    Video = 'video_file'
+    VideoMessage = 'video_message'
+    VoiceMessage = 'voice_message'
+    AudioFile = 'audio_file'
+    Sticker = 'sticker'
 
 
 class Message(BaseModel):
     date: datetime
-    id_: int = Field(..., alias="id")
+    id_: int = Field(..., alias='id')
     text_entities: List[Dict]
     type: MessageType
     text: str
     # другие поля опциональны
 
     # поля, у которых процент встречаемости больше 1%
-    from_: NoneStr = Field(None, alias="from")
+    from_: NoneStr = Field(None, alias='from')
     from_id: NoneStr
     reply_to_message_id: NoneInt
     edited: datetime | None
@@ -57,42 +57,25 @@ class Message(BaseModel):
     sticker_emoji: NoneStr
 
     # преобразуем список текстовых объектов в строку
-    @validator("text", pre=True)
+    @validator('text', pre=True)
     def plain_text(cls, value):
         if isinstance(value, List):
-            return "".join(
-                e.get("text", "") if isinstance(e, dict) else e for e in value
-            )
+            return ''.join(e.get('text', '') if isinstance(e, dict) else e for e in value)
         return value
 
 
 class Contact(BaseModel):
-    date: str
-    date_unixtime: int
+    date: datetime
     first_name: str
     last_name: str
     phone_number: str
 
 
 class FrequentContact(BaseModel):
-    id_: int = Field(..., alias="id")
+    id_: int = Field(..., alias='id')
     name: str
     rating: float
     category: ContactCategory
-
-
-# обертка для списка с описанием
-
-TData = TypeVar("TData")
-
-
-class AboutWrapper(GenericModel, Generic[TData]):
-    about: str
-    list: List[TData]
-
-
-T = TypeVar("T")
-ListWrapper = AboutWrapper[T] | List[T]
 
 
 # две главные модели:
@@ -101,20 +84,20 @@ ListWrapper = AboutWrapper[T] | List[T]
 
 
 class TelegramChat(BaseModel):
-    id_: int = Field(..., alias="id")
+    id_: int = Field(..., alias='id')
     messages: List[Message]
     name: NoneStr
-    type_: ChatType = Field(..., alias="type")
+    type_: ChatType = Field(..., alias='type')
 
 
 class TelegramExport(BaseModel):
-    chats: ListWrapper[TelegramChat]
-    contacts: ListWrapper[Contact]
-    frequent_contacts: ListWrapper[FrequentContact]
+    chats: List[TelegramChat]
+    contacts: List[Contact]
+    frequent_contacts: List[FrequentContact]
 
     # убираем обертку, если она есть
-    @validator("chats", "contacts", "frequent_contacts", pre=True)
+    @validator('chats', 'contacts', 'frequent_contacts', pre=True)
     def unwrap(cls, value):
-        if isinstance(value, dict) and "about" in value and "list" in value:
-            return value["list"]
+        if isinstance(value, dict) and 'about' in value and 'list' in value:
+            return value['list']
         return value
