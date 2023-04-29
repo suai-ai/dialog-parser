@@ -1,6 +1,10 @@
-from typing import List, Dict, Generic, TypeVar
+# Pydantic models for parsing Telegram Export files
+# Author: Denis Churilov (Cyber Potato @ GitHub)
+# Note: Some fields are omitted for simplicity and space saving
+
+
 from pydantic import BaseModel, Field, NoneStr, validator
-from pydantic.generics import GenericModel
+from typing import List, Dict
 from datetime import datetime
 from enum import Enum
 
@@ -58,7 +62,7 @@ class Message(BaseModel):
 
     # преобразуем список текстовых объектов в строку
     @validator('text', pre=True)
-    def plain_text(cls, value):
+    def plain_text(cls, value) -> str:
         if isinstance(value, List):
             return ''.join(e.get('text', '') if isinstance(e, dict) else e for e in value)
         return value
@@ -78,7 +82,7 @@ class FrequentContact(BaseModel):
     category: ContactCategory
 
 
-# две главные модели:
+# Две главные модели:
 # TelegramExport - все данные из экспорта
 # TelegramChat - данные об одном чате
 
@@ -89,6 +93,9 @@ class TelegramChat(BaseModel):
     name: NoneStr
     type_: ChatType = Field(..., alias='type')
 
+    def get_message(self, message_id: int) -> Message | None:
+        return next((message for message in self.messages if message.id_ == message_id), None)
+
 
 class TelegramExport(BaseModel):
     chats: List[TelegramChat]
@@ -97,7 +104,7 @@ class TelegramExport(BaseModel):
 
     # убираем обертку, если она есть
     @validator('chats', 'contacts', 'frequent_contacts', pre=True)
-    def unwrap(cls, value):
+    def unwrap(cls, value) -> list:
         if isinstance(value, dict) and 'about' in value and 'list' in value:
             return value['list']
         return value
