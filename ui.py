@@ -2,10 +2,11 @@ import tkinter
 import customtkinter
 from tkinter import filedialog as fd
 from functools import partial
-from new_message_mod import TelegramFile
 from math import ceil
 import json
 from tqdm import tqdm
+
+from telegram_models import TelegramExport, TelegramChat
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -209,7 +210,7 @@ class App(customtkinter.CTk):
         self.prev_btn = customtkinter.CTkButton(
             master=bottom_frame,
             text="<< Prev page",
-            command=partial(self.update_list, -1),
+            command=partial(self.updatelist, -1),
             width=80,
         )
         self.prev_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
@@ -222,7 +223,7 @@ class App(customtkinter.CTk):
         self.next_btn = customtkinter.CTkButton(
             master=bottom_frame,
             text="Next page >>",
-            command=partial(self.update_list, 1),
+            command=partial(self.updatelist, 1),
             width=80,
         )
         self.next_btn.pack(padx=10, pady=10, side=tkinter.LEFT)
@@ -254,9 +255,9 @@ class App(customtkinter.CTk):
         self.path_label.pack(
             padx=0, pady=10, side=tkinter.RIGHT, anchor=tkinter.W)
 
-        self.update_list()
+        self.updatelist()
 
-    def update_list(self, inc=0):
+    def updatelist(self, inc=0):
         self.chats_page += inc
         self.chats_page = max(0, min(self.chats_page, self.chats_pages - 1))
         self.page_label.configure(
@@ -322,40 +323,44 @@ class App(customtkinter.CTk):
         self.textbox.configure(state=tkinter.DISABLED)
 
     def parse_file(self):
+        class ExtChat(TelegramChat):
+            id_: int
+            preview: str | None
+            total_messages: int | None
+
         if not self.json_file:
             print("No file selected")
             return
         print("Parsing file... ", end="")
-        self.data = TelegramFile.parse_file(self.json_file).chats.list
+        self.data = TelegramExport.parse_file(self.json_file).chats
         print("Done")
 
         if self.settings.filter_bots.get():
             self.data = [i for i in self.data if i.name]
 
-        for chat in self.data:
+        self.chats = []
+        for chat in tqdm(self.data):
+            ext_chat = ExtChat(**chat.__dict__)
             preview = chat.messages[-(self.settings.preview_count.get()):]
             preview = "\n\n".join(
                 [
-                    f"[ {m.date_.replace('T', ' ')} ]\n{m.from_}: "
-                    f"{m.text if type(m.text) == str else (' '.join((i if type(i) == str else i.text) for i in m.text))}"
+                    f"[ {m.date} ]\n{m.from_}: {m.text}"
                     for m in preview
                 ]
             )
-            chat.preview = preview
-            chat.total_messages = len(chat.messages)
+            ext_chat.preview = preview
+            ext_chat.total_messages = len(chat.messages)
 
-        self.chats = []
-        for chat in self.data:
             self.chats.append(
                 ListItem(
                     master=self.list_frame,
-                    chat=chat,
+                    chat=ext_chat,
                     info=partial(self.show_preview, chat.preview),
                 )
             )
 
         self.chats_pages = ceil(len(self.chats) / self.chats_per_page)
-        self.update_list()
+        self.updatelist()
 
     def toggle_selection(self):
         for i in get_page(self.chats_page, self.chats_per_page, self.chats):
