@@ -16,7 +16,6 @@ class ContextData(Message):
 class Chunk(BaseModel):
     context: List[Message]
     reply: Message
-    test: Tuple[float, float | None]
 
     # delta не обязательное поле
     delta: timedelta | None
@@ -28,6 +27,16 @@ class Chunk(BaseModel):
     @validator('delta', pre=True, always=True)
     def calc_delta(cls, v, values):
         return values['reply'].date - values['context'][-1].date
+
+    def to_text(self):  # ? for debug
+        texts = [(message, message.text)
+                 for message in self.context] + [(self.reply, self.reply.text)]
+        texts = [(message, (text if text else '<empty>'))
+                 for message, text in texts]
+        # add date to each message
+        texts = [
+            f'{message.date.strftime("%d.%m.%Y %H:%M:%S")} - {text}' for message, text in texts]
+        return '\n'.join(texts)
 
 
 # splitting all messages into chunks
@@ -81,8 +90,8 @@ def get_relevance_specificity(chunk: Chunk):
 # TODO: somehow use specificity
 
 
-def decide_relevance(chunk: Chunk):
-    model_weight = relevance_model_weight(chunk.delta)
+def decide_relevance(chunk: Chunk, settings: SplitSettings = SplitSettings()):
+    model_weight = relevance_model_weight(chunk.delta, settings)
     if model_weight == 0:
         # если дельта настолько мала, что решение модели не требуется,
         # то считаем, сообщение релевантно
